@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom Styles for Emerald Theme and Animations */
+        :root {
+            --emerald: #2ecc71;
+            --emerald-dark: #27ae60;
+            --emerald-darker: #219653;
+            --teal: #14b8a6;
+            --gray: #6b7280;
+            --gray-light: #f1f5f9;
+            --gray-dark: #1e293b;
+        }
+
+        body {
+            background: linear-gradient(to bottom right, var(--gray-light), #e2e8f0);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Fade-in Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Slide-in Animation */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Pulse Animation for Buttons */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .slide-in {
+            animation: slideIn 0.5s ease-in-out;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Card Styling */
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Button Styling */
+        .btn-emerald {
+            background-color: var(--emerald);
+            border-color: var(--emerald);
+            color: white;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .btn-emerald:hover {
+            background-color: var(--emerald-dark);
+            border-color: var(--emerald-dark);
+            transform: scale(1.05);
+            animation: pulse 0.5s infinite;
+        }
+
+        /* Form Inputs */
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: var(--emerald);
+            box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.2);
+        }
+
+        /* Table Styling */
+        .table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .table tr {
+            transition: background-color 0.3s;
+        }
+
+        .table tr:hover {
+            background-color: var(--gray-light);
+        }
+
+        .table th {
+            background-color: var(--emerald);
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Status and Role Badges */
+        .status-badge, .role-badge {
+            font-size: 0.8rem;
+            padding: 6px 12px;
+            border-radius: 12px;
+            transition: transform 0.3s;
+        }
+
+        .role-badge:hover {
+            transform: scale(1.1);
+        }
+
+        .role-badge-admin {
+            background-color: var(--emerald);
+            color: white;
+        }
+
+        .role-badge-manager {
+            background-color: var(--teal);
+            color: white;
+        }
+
+        .role-badge-staff {
+            background-color: var(--gray);
+            color: white;
+        }
+
+        /* Modal Styling */
+        .modal-content {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            background-color: var(--emerald);
+            color: white;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+
+        /* Select Dropdown */
+        #taskAssignedTo, #editTaskAssignedTo, #userRole, #editTaskStatus {
+            max-height: 150px;
+            overflow-y: auto;
+            background: white;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--emerald);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--emerald-dark);
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="loginPage" class="fade-in">
+        <div class="container max-w-md mx-auto">
+            <div class="card p-6">
+                <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Welcome Back</h2>
+                <div class="mb-4">
+                    <label for="loginEmail" class="form-label text-gray-600">Email</label>
+                    <input type="email" class="form-control" id="loginEmail" placeholder="Enter your email" required>
+                </div>
+                <div class="mb-4">
+                    <label for="loginPassword" class="form-label text-gray-600">Password</label>
+                    <input type="password" class="form-control" id="loginPassword" placeholder="Enter your password" required>
+                </div>
+                <button class="btn btn-emerald w-full py-2" onclick="handleLogin()">Login</button>
+                <div id="loginError" class="text-danger mt-3 text-center"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Dashboard -->
+    <div id="taskDashboard" class="hidden">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center my-4 fade-in">
+                <h2 class="text-3xl font-bold text-gray-800">Task Dashboard</h2>
+                <div class="flex items-center space-x-3">
+                    <span id="currentUserName" class="text-lg font-medium text-gray-800"></span>
+                    <span id="currentUserRole" class="role-badge"></span>
+                    <button class="btn btn-danger py-1 px-3" onclick="handleLogout()">Logout</button>
+                </div>
+            </div>
+
+            <!-- Admin/Manager Page Link -->
+            <div id="adminLink" class="mb-4 hidden">
+                <button class="btn btn-emerald py-2 px-4" onclick="showAdminPage()">
+                    <span id="adminLinkText">Admin Page</span>
+                </button>
+            </div>
+
+            <!-- Task Creation Form -->
+            <div id="taskFormSection" class="card mb-4 hidden">
+                <div class="card-body p-6">
+                    <h5 class="text-xl font-semibold mb-4 text-gray-800">Create New Task</h5>
+                    <div class="mb-4">
+                        <label for="taskTitle" class="form-label text-gray-600">Title</label>
+                        <input type="text" class="form-control" id="taskTitle" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="taskDescription" class="form-label text-gray-600">Description</label>
+                        <textarea class="form-control" id="taskDescription" rows="4" required></textarea>
+                    </div>
+                    <div id="assignToSection" class="mb-4">
+                        <label for="taskAssignedTo" class="form-label text-gray-600">Assign To</label>
+                        <select class="form-control" id="taskAssignedTo">
+                            <option value="">Select a user</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="taskDueDate" class="form-label text-gray-600">Due Date</label>
+                        <input type="date" class="form-control" id="taskDueDate" required>
+                    </div>
+                    <button class="btn btn-emerald py-2 px-4" onclick="createTask()">Create Task</button>
+                    <div id="taskFormError" class="text-danger mt-3"></div>
+                </div>
+            </div>
+
+            <!-- Task List -->
+            <h5 class="text-xl font-semibold mb-3 text-gray-800">Your Tasks</h5>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Done</th>
+                            <th>Title</th>
+                            <th>Description</th>
+                            <th>Assigned To</th>
+                            <th>Created By</th>
+                            <th>Status</th>
+                            <th>Due Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="taskList" class="slide-in"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Page -->
+    <div id="adminPage" class="hidden">
+        <div class="container">
+            <h2 class="text-3xl font-bold my-4 text-gray-800" id="adminPageTitle">Admin Page</h2>
+            <button class="btn btn-emerald-dark mb-4 py-2 px-4" onclick="showTaskDashboard()">Back to Dashboard</button>
+
+            <!-- Create User Form -->
+            <div id="createUserSection" class="card mb-4 hidden">
+                <div class="card-body p-6">
+                    <h5 class="text-xl font-semibold mb-4 text-gray-800">Create New User</h5>
+                    <div class="mb-4">
+                        <label for="userName" class="form-label text-gray-600">Name</label>
+                        <input type="text" class="form-control" id="userName" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="userEmail" class="form-label text-gray-600">Email</label>
+                        <input type="email" class="form-control" id="userEmail" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="userPassword" class="form-label text-gray-600">Password</label>
+                        <input type="password" class="form-control" id="userPassword" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="userRole" class="form-label text-gray-600">Role</label>
+                        <select class="form-control" id="userRole" required>
+                            <option value="">Select Role</option>
+                            <option value="admin">Admin</option>
+                            <option value="manager">Manager</option>
+                            <option value="staff">Staff</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-emerald py-2 px-4" onclick="createUser()">Create User</button>
+                    <div id="userFormError" class="text-danger mt-3"></div>
+                </div>
+            </div>
+
+            <!-- User List -->
+            <h5 class="text-xl font-semibold mb-3 text-gray-800">User List</h5>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userList" class="slide-in"></tbody>
+                </table>
+            </div>
+
+            <!-- Activity Logs -->
+            <div id="logsSection" class="hidden">
+                <h5 class="text-xl font-semibold mb-3 text-gray-800">Activity Logs</h5>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Action</th>
+                                <th>Description</th>
+                                <th>Logged At</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logList" class="slide-in"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Task Modal -->
+    <div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editTaskModalLabel">Edit Task</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editTaskId">
+                    <div class="mb-4">
+                        <label for="editTaskTitle" class="form-label text-gray-600">Title</label>
+                        <input type="text" class="form-control" id="editTaskTitle" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="editTaskDescription" class="form-label text-gray-600">Description</label>
+                        <textarea class="form-control" id="editTaskDescription" rows="4" required></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label for="editTaskAssignedTo" class="form-label text-gray-600">Assign To</label>
+                        <select class="form-control" id="editTaskAssignedTo">
+                            <option value="">Select a user</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="editTaskStatus" class="form-label text-gray-600">Status</label>
+                        <select class="form-control" id="editTaskStatus">
+                            <option value="pending">Pending</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="done">Done</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="editTaskDueDate" class="form-label text-gray-600">Due Date</label>
+                        <input type="date" class="form-control" id="editTaskDueDate" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-emerald" onclick="saveTaskChanges()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentUser = null;
+        let authToken = null;
+        let usersList = [];
+        const BASE_URL = 'http://localhost:8000/api/';
+
+        const rolePermissions = {
+            admin: { canViewUsers: true, manageTasks: true, assignTasks: true, viewLogs: true },
+            manager: { canViewUsers: true, manageTasks: true, assignTasks: true, viewLogs: false },
+            staff: { canViewUsers: false, manageTasks: true, assignTasks: false, viewLogs: false }
+        };
+
+        function handleLogin() {
+            const email = document.getElementById("loginEmail").value.trim();
+            const password = document.getElementById("loginPassword").value;
+            const errorDiv = document.getElementById("loginError");
+
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                errorDiv.textContent = "Please enter a valid email.";
+                return;
+            }
+            if (!password) {
+                errorDiv.textContent = "Please enter a password.";
+                return;
+            }
+
+            fetch(`${BASE_URL}login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+                return res.json();
+            })
+            .then(data => {
+                currentUser = data.user || {};
+                authToken = data.token;
+                if (!currentUser.id || !authToken) throw new Error("Invalid user data or token.");
+
+                if (currentUser.status === false) {
+                    throw new Error("Your account is inactive. Please contact an admin.");
+                }
+
+                document.getElementById("loginPage").classList.add("hidden");
+                document.getElementById("taskDashboard").classList.remove("hidden");
+                document.getElementById("taskDashboard").classList.add("fade-in");
+                document.getElementById("currentUserName").textContent = currentUser.name || 'Unknown';
+                const roleBadge = document.getElementById("currentUserRole");
+                roleBadge.textContent = currentUser.role.toUpperCase();
+                roleBadge.classList.add(`role-badge-${currentUser.role}`);
+                setupDashboard();
+            })
+            .catch(err => {
+                errorDiv.textContent = err.message || "Login failed.";
+                console.error("Login error:", err);
+            });
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            authToken = null;
+            usersList = [];
+            document.getElementById("taskDashboard").classList.add("hidden");
+            document.getElementById("adminPage").classList.add("hidden");
+            document.getElementById("loginPage").classList.remove("hidden");
+            document.getElementById("loginPage").classList.add("fade-in");
+            document.getElementById("loginEmail").value = "";
+            document.getElementById("loginPassword").value = "";
+            document.getElementById("loginError").textContent = "";
+        }
+
+        function setupDashboard() {
+            if (!currentUser || !authToken) {
+                handleLogout();
+                return;
+            }
+            const permissions = rolePermissions[currentUser.role] || {};
+
+            if (permissions.canViewUsers) {
+                document.getElementById("adminLink").classList.remove("hidden");
+                if (currentUser.role === "manager") {
+                    document.getElementById("adminLinkText").textContent = "View Users";
+                }
+            }
+
+            if (permissions.assignTasks || currentUser.role === "staff") {
+                document.getElementById("taskFormSection").classList.remove("hidden");
+            }
+
+            if (currentUser.role === "staff") {
+                document.getElementById("assignToSection").classList.add("hidden");
+            }
+
+            fetchUsersForAssignTo();
+            loadTasks();
+        }
+
+        function fetchUsersForAssignTo() {
+            if (!authToken) return;
+            fetch(`${BASE_URL}users`, {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            })
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+                return res.json();
+            })
+            .then(users => {
+                usersList = users || [];
+                const assignToSelect = document.getElementById("taskAssignedTo");
+                assignToSelect.innerHTML = '<option value="">Select a user</option>';
+
+                let filteredUsers = [];
+                if (currentUser.role === "admin") {
+                    filteredUsers = usersList;
+                } else if (currentUser.role === "manager") {
+                    filteredUsers = usersList.filter(user => user.role === "staff");
+                }
+
+                filteredUsers.forEach(user => {
+                    const option = document.createElement("option");
+                    option.value = user.id || '';
+                    option.textContent = user.name || 'Unknown';
+                    assignToSelect.appendChild(option);
+                });
+
+                const editAssignToSelect = document.getElementById("editTaskAssignedTo");
+                editAssignToSelect.innerHTML = '<option value="">Select a user</option>';
+                filteredUsers.forEach(user => {
+                    const option = document.createElement("option");
+                    option.value = user.id || '';
+                    option.textContent = user.name || 'Unknown';
+                    editAssignToSelect.appendChild(option);
+                });
+            })
+            .catch(err => {
+                console.error("Failed to fetch users for Assign To:", err);
+                document.getElementById("taskFormError").textContent = "Failed to load users.";
+            });
+        }
+
+        function loadTasks() {
+            if (!authToken) return;
+            fetch(`${BASE_URL}tasks`, {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            })
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+                return res.json();
+            })
+            .then(tasks => {
+                const taskList = document.getElementById("taskList");
+                taskList.innerHTML = "";
+                const permissions = rolePermissions[currentUser.role] || {};
+
+                (tasks || []).forEach(task => {
+                    const isAssignedToMe = task.assigned_to === currentUser.id;
+                    const isCreator = currentUser.id === (task.created_by || '');
+                    const canEdit = currentUser.role === "admin" || 
+                                   (currentUser.role === "manager" && isAssignedToMe) || 
+                                   (currentUser.role === "staff" && isCreator);
+                    const canDelete = currentUser.role === "admin" || 
+                                     (currentUser.role === "manager" && isAssignedToMe) || 
+                                     (currentUser.role === "staff" && isCreator);
+
+                    const row = document.createElement("tr");
+                    row.classList.add("slide-in");
+                    row.innerHTML = `
+                        <td>
+                            <input type="checkbox" ${task.status === 'done' ? 'checked' : ''} 
+                                   onclick="toggleTaskStatus('${task.id || ''}', this.checked)" 
+                                   ${task.status === 'done' ? 'disabled' : ''}>
+                        </td>
+                        <td>${task.title || ''}</td>
+                        <td>${task.description || ''}</td>
+                        <td>${(task.assignee ? task.assignee.name : 'Unassigned') || 'Unassigned'}</td>
+                        <td>${(task.creator ? task.creator.name : 'Unknown') || 'Unknown'}</td>
+                        <td><span class="status-badge bg-${task.status === 'done' ? '[#2ecc71]' : task.status === 'in_progress' ? '[#f1c40f]' : '[#6b7280]'} text-white">${task.status || 'pending'}</span></td>
+                        <td>${task.due_date || ''}</td>
+                        <td>
+                            ${canEdit ? `<button class="btn btn-sm btn-emerald py-1 px-2" onclick="openEditTaskModal('${task.id || ''}', '${task.title || ''}', '${task.description || ''}', '${task.assigned_to || ''}', '${task.status || ''}', '${task.due_date || ''}')">Edit</button>` : ''}
+                            ${canDelete ? `<button class="btn btn-sm btn-danger py-1 px-2 ms-1" onclick="deleteTask('${task.id || ''}')">Delete</button>` : ''}
+                        </td>
+                    `;
+                    taskList.appendChild(row);
+                });
+            })
+            .catch(err => {
+                console.error("Failed to load tasks:", err);
+                document.getElementById("taskList").innerHTML = '<tr><td colspan="8">Failed to load tasks.</td></tr>';
+            });
+        }
+
+        function toggleTaskStatus(taskId, isChecked) {
+            if (!authToken) return;
+            const status = isChecked ? 'done' : 'pending';
+            fetch(`${BASE_URL}tasks/${taskId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                body: JSON.stringify({ status })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+                return res.json();
+            })
+            .then(() => loadTasks())
+            .catch(err => console.error("Failed to update task status:", err));
+        }
+
+        function createTask() {
+            if (!authToken) {
+                document.getElementById("taskFormError").textContent = "Please log in.";
+                return;
+            }
+            const title = document.getElementById("taskTitle").value.trim();
+            const description = document.getElementById("taskDescription").value.trim();
+            let assignedTo = document.getElementById("taskAssignedTo").value;
+            const dueDate = document.getElementById("taskDueDate").value;
+            const errorDiv = document.getElementById("taskFormError");
+
+            if (!title || !description || !dueDate) {
+                errorDiv.textContent = "Please fill in all required fields.";
+                return;
+            }
+            if (dueDate < new Date().toISOString().split('T')[0]) {
+                errorDiv.textContent = "Due date cannot be in the past.";
+                return;
+            }
+
+            if (currentUser.role === "staff") assignedTo = currentUser.id;
+            else if (!assignedTo) {
+                errorDiv.textContent = "Please select a user.";
+                return;
+            }
+
+            const task = { title, description, assigned_to: assignedTo, due_date: dueDate };
+            fetch(`${BASE_URL}tasks`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                body: JSON.stringify(task)
+            })
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+                return res.json();
+            })
+            .then(() => {
+                loadTasks();
+                document.getElementById("taskTitle").value = "";
+                document.getElementById("taskDescription").value = "";
+                document.getElementById("taskAssignedTo").value = "";
+                document.getElementById("taskDueDate").value = "";
+                errorDiv.textContent = "";
+            })
+            .catch(err => {
+                errorDiv.textContent = `Failed to create task: ${err.message}`;
+                console.error("Create task error:", err);
+            });
+        }
+
+        function openEditTaskModal(taskId, title, description, assignedTo, status, dueDate) {
+            if (!authToken) return;
+            document.getElementById("editTaskId").value = taskId || '';
+            document.getElementById("editTaskTitle").value = title || '';
+            document.getElementById("editTaskDescription").value = description || '';
+            document.getElementById("editTaskAssignedTo").value = assignedTo || '';
+            document.getElementById("editTaskStatus").value = status || 'pending';
+            document.getElementById("editTaskDueDate").value = dueDate || '';
+            new bootstrap.Modal(document.getElementById('editTaskModal')).show();
+        }
+
+        function saveTaskChanges() {
+            if (!authToken) {
+                alert("Please log in to edit a task.");
+                return;
+            }
+            const taskId = document.getElementById("editTaskId").value;
+            const title = document.getElementById("editTaskTitle").value.trim();
+            const description = document.getElementById("editTaskDescription").value.trim();
+            const assignedTo = document.getElementById("editTaskAssignedTo").value;
+            const status = document.getElementById("editTaskStatus").value;
+            const dueDate = document.getElementById("editTaskDueDate").value;
+
+            if (!title || !description || !dueDate) {
+                alert("Please fill in all required fields.");
+                return;
+            }
+            if (dueDate < new Date().toISOString().split('T')[0]) {
+                alert("Due date cannot be in the past.");
+                return;
+            }
+
+            let updatedTask = { title, description, status, due_date: dueDate };
+            if (currentUser.role !== "staff" && assignedTo) {
+                updatedTask.assigned_to = assignedTo;
+            }
+
+            fetch(`${BASE_URL}tasks/${taskId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                body: JSON.stringify(updatedTask)
+            })
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+                return res.json();
+            })
+            .then(() => {
+                bootstrap.Modal.getInstance(document.getElementById('editTaskModal')).hide();
+                loadTasks();
+            })
+            .catch(err => {
+                console.error("Failed to edit task:", err);
+                alert(`Failed to edit task: ${err.message}`);
+            });
+        }
+
+        function deleteTask(taskId) {
+            if (!authToken) return;
+            if (confirm("Are you sure?")) {
+                fetch(`${BASE_URL}tasks/${taskId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+                    return res.json();
+                })
+                .then(() => loadTasks())
+                .catch(err => console.error("Failed to delete task:", err));
+            }
+        }
+
+        function showAdminPage() {
+            if (!authToken) {
+                handleLogout();
+                return;
+            }
+            document.getElementById("taskDashboard").classList.add("hidden");
+            document.getElementById("adminPage").classList.remove("hidden");
+            document.getElementById("adminPage").classList.add("fade-in");
+
+            if (currentUser.role === "admin") {
+                document.getElementById("adminPageTitle").textContent = "Admin Page";
+                document.getElementById("createUserSection").classList.remove("hidden");
+                document.getElementById("logsSection").classList.remove("hidden");
+                loadUsers();
+                loadLogs();
+            } else if (currentUser.role === "manager") {
+                document.getElementById("adminPageTitle").textContent = "View Users";
+                document.getElementById("createUserSection").classList.add("hidden");
+                document.getElementById("logsSection").classList.add("hidden");
+                loadUsers();
+            }
+        }
+
+        function showTaskDashboard() {
+            if (!authToken) {
+                handleLogout();
+                return;
+            }
+            document.getElementById("adminPage").classList.add("hidden");
+            document.getElementById("taskDashboard").classList.remove("hidden");
+            document.getElementById("taskDashboard").classList.add("fade-in");
+            loadTasks();
+        }
+
+        function loadUsers() {
+            if (!authToken) return;
+            fetch(`${BASE_URL}users`, {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            })
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+                return res.json();
+            })
+            .then(users => {
+                const userList = document.getElementById("userList");
+                userList.innerHTML = "";
+                (users || []).forEach(user => {
+                    const row = document.createElement("tr");
+                    row.classList.add("slide-in");
+                    row.innerHTML = `
+                        <td>${user.name || ''}</td>
+                        <td>${user.email || ''}</td>
+                        <td>${user.role || ''}</td>
+                    `;
+                    userList.appendChild(row);
+                });
+            })
+            .catch(err => {
+                console.error("Failed to load users:", err);
+                document.getElementById("userList").innerHTML = '<tr><td colspan="3">Failed to load users.</td></tr>';
+            });
+        }
+
+        function loadLogs() {
+            if (!authToken) return;
+            fetch(`${BASE_URL}logs`, {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            })
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+                return res.json();
+            })
+            .then(logs => {
+                const logList = document.getElementById("logList");
+                logList.innerHTML = "";
+                (logs || []).forEach(log => {
+                    const row = document.createElement("tr");
+                    row.classList.add("slide-in");
+                    row.innerHTML = `
+                        <td>${(log.user ? log.user.name : 'Unknown') || 'Unknown'}</td>
+                        <td>${log.action || ''}</td>
+                        <td>${log.description || ''}</td>
+                        <td>${new Date(log.logged_at || Date.now()).toLocaleString()}</td>
+                    `;
+                    logList.appendChild(row);
+                });
+            })
+            .catch(err => {
+                console.error("Failed to load logs:", err);
+                document.getElementById("logList").innerHTML = '<tr><td colspan="4">Failed to load logs.</td></tr>';
+            });
+        }
+
+        function createUser() {
+            if (!authToken) {
+                document.getElementById("userFormError").textContent = "Please log in.";
+                return;
+            }
+
+            const nameElement = document.getElementById("userName");
+            const emailElement = document.getElementById("userEmail");
+            const passwordElement = document.getElementById("userPassword");
+            const roleElement = document.getElementById("userRole");
+            const errorDiv = document.getElementById("userFormError");
+
+            if (!nameElement || !emailElement || !passwordElement || !roleElement || !errorDiv) {
+                errorDiv.textContent = "Error: One or more form elements are missing. Check console.";
+                console.error("Missing elements:", { nameElement, emailElement, passwordElement, roleElement, errorDiv });
+                return;
+            }
+
+            const name = nameElement.value.trim();
+            const email = emailElement.value.trim();
+            const password = passwordElement.value.trim();
+            const role = roleElement.value;
+
+            console.log("Debug - Elements:", { nameElement, roleElement });
+            console.log("Debug - Values:", { name, email, password, role });
+
+            if (!name || !email || !password || !role) {
+                errorDiv.textContent = "Please fill in all required fields. (Check console for values)";
+                return;
+            }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                errorDiv.textContent = "Please enter a valid email.";
+                return;
+            }
+            if (password.length < 6) {
+                errorDiv.textContent = "Password must be at least 6 characters.";
+                return;
+            }
+
+            const user = { name, email, password, role };
+            fetch(`${BASE_URL}users`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                body: JSON.stringify(user)
+            })
+            .then(res => {
+                const contentType = res.headers.get('Content-Type');
+                if (!res.ok) {
+                    if (contentType && contentType.includes('application/json')) {
+                        return res.json().then(errorData => {
+                            throw new Error(errorData.error || `HTTP error! Status: ${res.status}`);
+                        });
+                    } else {
+                        return res.text().then(text => {
+                            throw new Error(`Server returned non-JSON response (Status: ${res.status}): ${text.slice(0, 100)}...`);
+                        });
+                    }
+                }
+                if (contentType && contentType.includes('application/json')) {
+                    return res.json();
+                } else {
+                    throw new Error("Unexpected non-JSON response from server");
+                }
+            })
+            .then(() => {
+                loadUsers();
+                document.getElementById("userName").value = "";
+                document.getElementById("userEmail").value = "";
+                document.getElementById("userPassword").value = "";
+                document.getElementById("userRole").value = "";
+                errorDiv.textContent = "";
+            })
+            .catch(err => {
+                errorDiv.textContent = `Failed to create user: ${err.message}`;
+                console.error("Create user error:", err);
+            });
+        }
+    </script>
+</body>
+</html>
